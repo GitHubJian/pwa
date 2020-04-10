@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>PWA TEST</title>
-    <link rel="stylesheet" href="./css/main.css" />
-
+    <meta charset="UTF-8" />
+    <title>Hello Caching World!</title>
+  </head>
+  <body>
+    <img width="300" height="300" src="./images/hello.png" />
+    <script async src="./js/script.js"></script>
     <script>
-      if ('serviceWorker' in window.navigator && 'PushManager' in window) {
+      if ('serviceWorker' in navigator) {
         navigator.serviceWorker
-          .register('/sw.js')
+          .register('./service-worker.js')
           .then(function(registration) {
             console.log(
-              'Registration successful, scope is:',
+              'ServiceWorker registration successful with scope: ',
               registration.scope
             )
           })
-          .catch(function(error) {
-            console.log('Service worker registration failed, error:', error)
+          .catch(function(err) {
+            console.log('ServiceWorker registration failed: ', err)
           })
       }
     </script>
-  </head>
-
-  <body>
-    <h1 class="title">Hello, world</h1>
-
-    <img src="/images/name1.png" />
   </body>
 </html>
