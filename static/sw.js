@@ -21,8 +21,6 @@ self.addEventListener('activate', function(e) {
 })
 
 self.addEventListener('fetch', e => {
-  console.log(e.request.url)
-
   if (
     /\.jpg$|.png$|.js$|.map$/.test(e.request.url) &&
     e.request.url.indexOf('hot-update.js') === -1
