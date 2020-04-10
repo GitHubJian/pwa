@@ -1,6 +1,12 @@
 let cacheName = 'pwa-demo-v5'
 
-let assetsFiles = ['/', '/index.html', '/css/main.css', '/manifest.json']
+let assetsFiles = [
+  '/manifest.json',
+  '/index.html',
+  '/css/index.css',
+  '/js/index.js',
+  '/images/helloworld.png'
+]
 
 self.addEventListener('install', function(e) {
   self.caches.open(cacheName).then(function(cache) {
