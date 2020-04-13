@@ -1,4 +1,4 @@
-let cacheName = 'pwa-demo-v5'
+let cacheName = 'pwa-demo-v2'
 
 let assetsFiles = [
   '/manifest.json',

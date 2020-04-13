@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PWA TEST</title>
+    <link rel="manifest" href="/manifest.json"/>
+
+    <link rel="stylesheet" href="./css/index.css"/>
+  </head>
+
+  <body>
+    <h1 class="title">Hello, world</h1>
+
+    <img src="/images/helloworld.png"/>
+
+    <script src="/js/index.js"></script>
+
+    <script>
+      window.vapidPublicKey = new Uint8Array({{ decodedVapidPublicKey }});
+
+      // index
+      if ('serviceWorker' in window.navigator && 'PushManager' in window) {
+        navigator
+          .serviceWorker
+          .register('/sw.js')
+          .then(function (registration) {
+            console.log('Registration successful, scope is:', registration.scope)
+          })
+          .catch(function (error) {
+            console.log('Service worker registration failed, error:', error)
+          })
+        }
+    </script>
+  </body>
+</html>

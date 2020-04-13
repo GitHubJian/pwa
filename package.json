@@ -21,8 +21,14 @@
   },
   "homepage": "https://github.com/GitHubJian/pwa#readme",
   "devDependencies": {
-    "koa": "^2.11.0",
-    "koa-sslify": "^4.0.3",
-    "koa-static": "^5.0.0"
-  }
+    "ejs": "3.0.2",
+    "koa": "2.11.0",
+    "koa-router": "8.0.8",
+    "koa-sslify": "4.0.3",
+    "koa-static": "5.0.0",
+    "nunjucks": "3.2.1",
+    "urlsafe-base64": "1.0.0",
+    "web-push": "3.4.3"
+  },
+  "dependencies": {}
 }
