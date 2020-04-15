@@ -24,10 +24,24 @@
     "ejs": "3.0.2",
     "koa": "2.11.0",
     "koa-router": "8.0.8",
+    "koa-send": "5.0.0",
     "koa-static": "5.0.0",
     "mysql2": "2.1.0",
-    "urlsafe-base64": "1.0.0",
-    "web-push": "3.4.3",
-    "sequelize": "5.21.5"
+    "sequelize": "5.21.5",
+    "web-push": "3.4.3"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "7.9.0",
+    "@babel/plugin-transform-modules-commonjs": "7.9.0",
+    "@babel/plugin-transform-runtime": "7.9.0",
+    "@babel/preset-env": "7.9.5",
+    "babel-loader": "8.1.0",
+    "html-webpack-plugin": "4.2.0",
+    "mini-css-extract-plugin": "0.9.0",
+    "webpack": "4.42.1",
+    "webpack-cli": "4.0.0-beta.2",
+    "webpack-dev-middleware": "3.7.2",
+    "webpack-hot-middleware": "2.25.0",
+    "webpack-merge": "4.2.2"
   }
 }

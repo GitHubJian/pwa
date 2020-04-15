@@ -1,26 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title></title>
-    <link rel="manifest" href="/static/manifest.json" />
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <link rel="manifest" href="/assets/manifest.json" />
 
-    <link rel="stylesheet" href="/static/css/index.css" />
-
-    <script>
-      window.addEventListener('error', function(err) {
-        err
-        debugger
-      })
-    </script>
+    <link rel="stylesheet" href="/css/index.css" />
   </head>
 
   <body>
+    <span id="btn">Update</span>
+
     <h1 class="title">Hello, world</h1>
 
-    <img id="btn" src="/static/images/helloworld.png" />
+    <img src="/images/helloworld.png" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.js"></script>
-    <script src="/static/js/index.js"></script>
 
     <script>
       var endpoint
@@ -43,7 +37,7 @@
       }
 
       function determineAppServerKey() {
-        var vapidPublicKey = '<%= VAPID_PUBLIC_KEY %>'
+        var vapidPublicKey = '<%= htmlWebpackPlugin.options.VAPID_PUBLIC_KEY %>'
 
         return urlBase64ToUint8Array(vapidPublicKey)
       }
@@ -52,7 +46,7 @@
       function main() {
         if ('serviceWorker' in window.navigator && 'PushManager' in window) {
           navigator.serviceWorker
-            .register('/static/sw.js')
+            .register('/assets/sw.js')
             .then(function(registration) {
               return registration.pushManager
                 .getSubscription()
