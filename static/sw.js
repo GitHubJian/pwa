@@ -7,14 +7,12 @@ const assetsFiles = [
   '/css/index.css',
   '/js/index.js',
   '/images/helloworld.png',
-  '/images/1.png'
+  '/offline-page.html'
 ]
 
 self.addEventListener('install', function(event) {
   self.caches.open(cacheName).then(
     function(cache) {
-      console.log('sw install 111...')
-
       return cache.addAll(assetsFiles)
     },
     function(err) {

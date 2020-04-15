@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+
+    <title>Progressive Times - You are offline</title>
+
+    <link rel="manifest" href="/assets/manifest.json" />
+
+    <link rel="stylesheet" href="/css/index.css" />
+  </head>
+  <body>
+    <!-- header -->
+    <div id="header-offline">
+      <h1>Progressive Times</h1>
+      <h6>Whoops! It looks like you are currently offline.</h6>
+    </div>
+    <script>
+      // Register the service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('./sw.js')
+          .then(function(registration) {
+            // Registration was successful
+          })
+      }
+    </script>
+  </body>
+</html>
