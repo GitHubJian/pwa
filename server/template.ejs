@@ -5,6 +5,13 @@
     <link rel="manifest" href="/static/manifest.json" />
 
     <link rel="stylesheet" href="/static/css/index.css" />
+
+    <script>
+      window.addEventListener('error', function(err) {
+        err
+        debugger
+      })
+    </script>
   </head>
 
   <body>
@@ -45,7 +52,7 @@
       function main() {
         if ('serviceWorker' in window.navigator && 'PushManager' in window) {
           navigator.serviceWorker
-            .register('/static/sw2.js')
+            .register('/static/sw.js')
             .then(function(registration) {
               return registration.pushManager
                 .getSubscription()
@@ -72,23 +79,39 @@
                             )
                           )
                         : ''
+
                       var rawAuthSecret = subscription.getKey
                         ? subscription.getKey('auth')
+                        : ''
+                      authSecret = rawAuthSecret
+                        ? btoa(
+                            String.fromCharCode.apply(
+                              null,
+                              new Uint8Array(rawAuthSecret)
+                            )
+                          )
                         : ''
 
                       endpoint = subscription.endpoint
 
-                      return fetch('https://xiaows127.com/register', {
+                      return fetch('https://xiaows127.com/apis/register', {
                         method: 'post',
                         headers: new Headers({
                           'content-type': 'application/json'
                         }),
                         body: JSON.stringify({
-                          endpoint: subscription.endpoint,
+                          endpoint: endpoint,
                           key: key,
                           authSecret: authSecret
                         })
-                      })
+                      }).then(
+                        function(res) {
+                          console.log('注册成功')
+                        },
+                        function(err) {
+                          console.log(err)
+                        }
+                      )
                     })
                 })
             })

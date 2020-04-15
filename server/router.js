@@ -1,30 +1,31 @@
 const webpush = require('web-push')
 const koaRouter = require('koa-router')
-const router = new koaRouter()
+const router = new koaRouter({ prefix: '/apis' })
+
+const { User } = require('./mysql')
 
 const { SUBJECT, VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY } = require('./config')
 
 webpush.setVapidDetails(SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)
 
-function saveRegistrationDetails(endpoint, key, authSecret) {
+const db = []
+
+async function saveRegistrationDetails(endpoint, key, authSecret) {
   // Save the users details in a DB
-}
-
-router.post('/sendMessage', async function(ctx, next) {
-  var endpoint = ctx.request.body.endpoint
-  var authSecret = ctx.request.body.authSecret
-  var key = ctx.request.body.key
-
-  const pushSubscription = {
-    endpoint: endpoint,
-    keys: {
+  try {
+    await User.create({
+      endpoint: endpoint,
       auth: authSecret,
       p256dh: key
-    }
+    })
+  } catch (e) {
+    console.log(e)
   }
+}
 
-  var body = 'Breaking News: Nose picking ban for Manila police'
-  var iconUrl =
+function push(pushSubscription) {
+  const body = '推送消息'
+  const iconUrl =
     'https://raw.githubusercontent.com/deanhume/progressive-web-apps-book/master/chapter-6/push-notifications/public/images/homescreen.png'
 
   webpush
@@ -39,19 +40,39 @@ router.post('/sendMessage', async function(ctx, next) {
     )
     .then(res => {
       console.log(res)
-      ctx.status = 201
     })
     .catch(err => {
       console.log(err)
     })
+}
+
+// 需要其他的 toB cms去触发这个 push
+router.get('/push', async function(ctx, next) {
+  const users = await User.findAll()
+
+  for (let i = 0, il = users.length; i < il; i++) {
+    const { endpoint, auth, p256dh } = users[i]
+
+    const pushSubscription = {
+      endpoint: endpoint,
+      keys: {
+        auth: auth,
+        p256dh: p256dh
+      }
+    }
+
+    push(pushSubscription)
+  }
+
+  ctx.status = 200
 })
 
 router.post('/register', async function(ctx, next) {
-  var endpoint = ctx.body.endpoint
-  var authSecret = ctx.body.authSecret
-  var key = ctx.body.key
+  var endpoint = ctx.request.body.endpoint
+  var authSecret = ctx.request.body.authSecret
+  var key = ctx.request.body.key
 
-  saveRegistrationDetails()
+  saveRegistrationDetails(endpoint, key, authSecret)
 
   const pushSubscription = {
     endpoint: endpoint,
@@ -61,7 +82,7 @@ router.post('/register', async function(ctx, next) {
     }
   }
 
-  var body = 'Breaking News: Nose picking ban for Manila police'
+  var body = '注册成功'
   var iconUrl =
     'https://raw.githubusercontent.com/deanhume/progressive-web-apps-book/master/chapter-6/push-notifications/public/images/homescreen.png'
 
@@ -76,12 +97,13 @@ router.post('/register', async function(ctx, next) {
       })
     )
     .then(function(res) {
-      console.log(res)
-      ctx.status = 201
+      console.log('注册成功')
     })
     .catch(function(err) {
       console.log(err)
     })
+
+  ctx.status = 201
 })
 
 module.exports = router
