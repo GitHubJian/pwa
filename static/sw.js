@@ -27,10 +27,50 @@ self.addEventListener('activate', function(e) {
   e.waitUntil(self.clients.claim())
 })
 
+function jsonStream(json) {
+  const stream = new ReadableStream({
+    start: controller => {
+      const encoder = new TextEncoder()
+      let pos = 0
+      let chunkSize = 1
+
+      function push() {
+        if (pos >= json.length) {
+          controller.close()
+          return
+        }
+
+        controller.enqueue(encoder.encode(json.slice(pos, pos + chunkSize)))
+
+        pos += chunkSize
+        setTimeout(push, 50)
+      }
+
+      push()
+    }
+  })
+
+  const res = new Response(stream, {
+    headers: {
+      'Context-Type': 'application/json'
+    }
+  })
+
+  return res
+}
+
 self.addEventListener('fetch', function(event) {
   const url = new URL(event.request.url)
 
-  if (url.pathname.startsWith('/apis')) {
+  if (url.pathname.endsWith('/b.json')) {
+    const json = JSON.stringify({
+      name: 'xiaows',
+      age: 10,
+      school: ['gaozhong', 'daxxue']
+    })
+
+    event.respondWith(jsonStream(json))
+  } else if (url.pathname.startsWith('/apis')) {
     console.log(event.request.url)
   } else {
     event.respondWith(
@@ -91,3 +131,128 @@ self.addEventListener('message', function(event) {
     self.skipWaiting()
   }
 })
+
+function streamArticle(url) {
+  try {
+    new ReadableStream({})
+  } catch (error) {
+    return new Response('Streams not supported')
+  }
+
+  const stream = new ReadableStream({
+    start(controller) {
+      const startFetch = caches.match('./header.html')
+      const bodyData = fetch(`./data/${url}.html`).catch(
+        () => new Response('Body fetch failed')
+      )
+      const endFetch = caches.match('./footer.html')
+
+      function pushStream(stream) {
+        const reader = stream.getReader()
+        function read() {
+          return reader.read().then(result => {
+            if (result.done) return
+            controller.enqueue(result.value)
+            return read()
+          })
+        }
+        return read()
+      }
+
+      startFetch
+        .then(response => pushStream(response.body))
+        .then(() => bodyData)
+        .then(response => pushStream(response.body))
+        .then(() => endFetch)
+        .then(response => pushStream(response.body))
+        .then(() => controller.close())
+    }
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Context-Type': 'text/html'
+    }
+  })
+}
+
+function getQueryString(field, url = window.location.href) {
+  var reg = new RegExp('[?&]' + field + '=([^&#]*)', 'i')
+  var string = reg.exec(url)
+  return string ? string[1] : null
+}
+
+;(function() {
+  var db
+  function createInstance() {
+    if (!db) {
+      db = new Promise(function(resolve, reject) {
+        var req = indexedDB.open('keyval-store', 1)
+        req.onerror = function() {
+          reject(req.error)
+        }
+        req.onupgradeneeded = function() {
+          req.result.createObjectStore('keyval')
+        }
+        req.onsuccess = function() {
+          resolve(req.result)
+        }
+      })
+    }
+
+    return db
+  }
+
+  function withStore(type, callback) {
+    return createInstance().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var transaction = db.transaction('keyval', type)
+        callback(transaction.objectStore('keyval'))
+
+        transaction.oncomplete = function() {
+          resolve()
+        }
+        transaction.onerror = function() {
+          reject(transaction.error)
+        }
+      })
+    })
+  }
+
+  var idbKeyval = {
+    get: function(key) {
+      var req
+      return withStore('readonly', function(store) {
+        req = store.get(key)
+      }).then(function() {
+        return req.result
+      })
+    },
+    set: function(key, value) {
+      return withStore('readwrite', function(store) {
+        store.put(value, key)
+      })
+    },
+    delete: function(key) {
+      return withStore('readwrite', function(store) {
+        store.delete(key)
+      })
+    },
+    keys: function() {
+      var keys = []
+      return withStore('readonly', function(store) {
+        ;(store.openKeyCursor || store.openCursor).call(
+          store
+        ).onsuccess = function() {
+          if (!this.result) return
+          keys.push(this.result.key)
+          this.result.continue()
+        }
+      }).then(function() {
+        return keys
+      })
+    }
+  }
+
+  self.idbKeyval = idbKeyval
+})()

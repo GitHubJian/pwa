@@ -19,5 +19,23 @@
     <script>
       window.vapid = '<%= htmlWebpackPlugin.options.VAPID_PUBLIC_KEY %>'
     </script>
+
+    <script>
+      fetch('https://xiaows127.com/b.json', {
+        method: 'get',
+        headers: new Headers({
+          'content-type': 'application/json'
+        })
+      })
+        .then(function(res) {
+          return res.json()
+        })
+        .then(function(ret) {
+          console.log(ret)
+        })
+        .catch(function(e) {
+          console.log(e)
+        })
+    </script>
   </body>
 </html>
