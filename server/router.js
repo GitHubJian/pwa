@@ -106,4 +106,16 @@ router.post('/register', async function(ctx, next) {
   ctx.status = 201
 })
 
+router.get('/list', async function(ctx, next) {
+  ctx.body = {
+    code: 0,
+    msg: 'success',
+    data: [
+      {
+        name: 'xiaows'
+      }
+    ]
+  }
+})
+
 module.exports = router

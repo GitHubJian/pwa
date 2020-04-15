@@ -18,7 +18,7 @@ module.exports = function(config, app) {
         maxage,
         setHeaders: function(res, path, stats) {
           res.setHeader('Author', 'Xiaows')
-          res.setHeader('Cache-Control', `max-age=0,must-revalidate`)
+          res.setHeader('Cache-Control', 'no-store')
         }
       })
     }

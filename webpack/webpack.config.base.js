@@ -22,7 +22,8 @@ exports.baseConfig = {
   mode: isDevelopment ? 'development' : 'production',
   target: 'web',
   entry: {
-    index: path.resolve(pathConfig.src, 'js/index.js')
+    index: path.resolve(pathConfig.src, 'js/index.js'),
+    install: path.resolve(pathConfig.src, 'js/install.js')
   },
   output: {
     filename: isDevelopment ? 'js/[name].js' : 'js/[name].[contenthash].js',
@@ -78,7 +79,7 @@ exports.baseConfig = {
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: pathConfig.templatePath,
-      chunks: ['index'],
+      chunks: ['index', 'install'],
       title: 'Pwa Test',
       VAPID_PUBLIC_KEY: secret.VAPID_PUBLIC_KEY,
       inject: 'body',

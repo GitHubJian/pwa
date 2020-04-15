@@ -31,22 +31,14 @@ module.exports = function(options, app) {
       const entryKey = 'index'
       const entryVal = allEntry[entryKey]
 
-      compiler.apply(
-        new MultiEntryPlugin(
-          root,
-          [
-            // 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=5000&reload=true',
-            entryVal
-          ],
-          entryKey
-        )
-      )
+      // 'webpack-hot-middleware/client?path=/__webpack_hmr&timeout=5000&reload=true',
+      compiler.apply(new SingleEntryPlugin(root, entryVal, entryKey))
 
       compiler.apply(
         new HtmlWebpackPlugin({
           filename: 'index.html',
           template: pathConfig.templatePath,
-          chunks: ['index'],
+          chunks: ['index', 'install'],
           title: 'Pwa Test',
           VAPID_PUBLIC_KEY: secret.VAPID_PUBLIC_KEY,
           inject: 'body',
