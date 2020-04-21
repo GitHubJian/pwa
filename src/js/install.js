@@ -33,6 +33,20 @@ window.addEventListener('sw.update', function() {
   }
 })
 
+function receiver(event) {
+  var origin = event.origin || event.originalEvent.origin
+
+  if (origin !== 'https://xiaows127.com') {
+    return
+  }
+
+  var data = event.data
+
+  console.log(data)
+}
+
+window.addEventListener('message', receiver, false)
+
 navigator.serviceWorker.addEventListener('controllerchange', function() {
   window.location.reload()
 })
@@ -120,7 +134,7 @@ function main() {
                     console.log('注册成功')
                   },
                   function(err) {
-                    console.log(err)
+                    console.error('注册失败')
                   }
                 )
               })

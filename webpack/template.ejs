@@ -14,6 +14,8 @@
 
     <img src="/images/helloworld.png" />
 
+    <span id="btn2" style="font-size: 40px">Apis</span>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.0/jquery.js"></script>
 
     <script>
@@ -21,11 +23,30 @@
     </script>
 
     <script>
-      fetch('https://xiaows127.com/b.json', {
+      fetch('/apis/userinfo', {
         method: 'get',
         headers: new Headers({
           'content-type': 'application/json'
         })
+      })
+        .then(function(res) {
+          return res.clone().json()
+        })
+        .then(function(ret) {
+          console.log(ret)
+        })
+        .catch(function(e) {
+          console.error(e)
+        })
+    </script>
+
+    <script>
+      fetch('http://localhost:8422/list', {
+        method: 'get',
+        headers: new Headers({
+          'content-type': 'application/json'
+        }),
+        mode: 'cors'
       })
         .then(function(res) {
           return res.json()
@@ -33,8 +54,8 @@
         .then(function(ret) {
           console.log(ret)
         })
-        .catch(function(e) {
-          console.log(e)
+        .catch(function(err) {
+          console.log(err)
         })
     </script>
   </body>

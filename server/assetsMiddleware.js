@@ -17,8 +17,12 @@ module.exports = function(config, app) {
         root: folder,
         maxage,
         setHeaders: function(res, path, stats) {
+          if (/\/sw\/.+\.js/.test(reqPath)) {
+            res.setHeader('Service-Worker-Allowed', '/')
+          }
+
           res.setHeader('Author', 'Xiaows')
-          res.setHeader('Cache-Control', 'no-store')
+          // res.setHeader('Cache-Control', 'no-store')
         }
       })
     }

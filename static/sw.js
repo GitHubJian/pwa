@@ -1,9 +1,115 @@
+// 初始化数据库
+;(function() {
+  var db
+  function createInstance() {
+    if (!db) {
+      db = new Promise(function(resolve, reject) {
+        var req = indexedDB.open('keyval-store', 1)
+        req.onerror = function() {
+          reject(req.error)
+        }
+        req.onupgradeneeded = function() {
+          req.result.createObjectStore('keyval')
+        }
+        req.onsuccess = function() {
+          resolve(req.result)
+        }
+      })
+    }
+
+    return db
+  }
+
+  function withStore(type, callback) {
+    return createInstance().then(function(db) {
+      return new Promise(function(resolve, reject) {
+        var transaction = db.transaction('keyval', type)
+        callback(transaction.objectStore('keyval'))
+
+        transaction.oncomplete = function() {
+          resolve()
+        }
+        transaction.onerror = function() {
+          reject(transaction.error)
+        }
+      })
+    })
+  }
+
+  var idbKeyval = {
+    get: function(key) {
+      var req
+      return withStore('readonly', function(store) {
+        req = store.get(key)
+      }).then(function() {
+        return req.result
+      })
+    },
+    set: function(key, value) {
+      return withStore('readwrite', function(store) {
+        store.put(value, key)
+      })
+    },
+    delete: function(key) {
+      return withStore('readwrite', function(store) {
+        store.delete(key)
+      })
+    },
+    keys: function() {
+      var keys = []
+      return withStore('readonly', function(store) {
+        ;(store.openKeyCursor || store.openCursor).call(
+          store
+        ).onsuccess = function() {
+          if (!this.result) return
+          keys.push(this.result.key)
+          this.result.continue()
+        }
+      }).then(function() {
+        return keys
+      })
+    }
+  }
+
+  self.idbKeyval = idbKeyval
+})()
+
+// storage
+;(function() {
+  var storage = {}
+
+  storage.get = function(key, callback) {
+    self.onmessage = callback
+
+    self.postMessage(
+      JSON.stringify({
+        key: 'storage.getItem',
+        params: [key]
+      })
+    )
+  }
+
+  storage.set = function(key, value) {
+    if (key) {
+      try {
+        window.localStorage.setItem(key, value)
+        return true
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    return false
+  }
+
+  self.storage = storage
+})()
+
 const cacheName = 'pwa-demo-v4'
 const offlineUrl = 'offline-page.html'
 
 const assetsFiles = [
   '/assets/manifest.json',
-  '/index.html',
   '/css/index.css',
   '/js/index.js',
   '/images/helloworld.png',
@@ -23,11 +129,10 @@ self.addEventListener('install', function(event) {
 
 // 更新缓存
 self.addEventListener('activate', function(e) {
-  console.log('更新缓存')
   e.waitUntil(self.clients.claim())
 })
 
-function jsonStream(json) {
+function streamJson(json) {
   const stream = new ReadableStream({
     start: controller => {
       const encoder = new TextEncoder()
@@ -60,51 +165,37 @@ function jsonStream(json) {
 }
 
 self.addEventListener('fetch', function(event) {
-  const url = new URL(event.request.url)
+  event.respondWith(
+    caches.match(event.request).then(function(response) {
+      if (response) {
+        return response
+      }
 
-  if (url.pathname.endsWith('/b.json')) {
-    const json = JSON.stringify({
-      name: 'xiaows',
-      age: 10,
-      school: ['gaozhong', 'daxxue']
-    })
+      var fetchRequest = event.request.clone()
 
-    event.respondWith(jsonStream(json))
-  } else if (url.pathname.startsWith('/apis')) {
-    console.log(event.request.url)
-  } else {
-    event.respondWith(
-      caches.match(event.request).then(function(response) {
-        if (response) {
-          return response
-        }
-
-        var fetchRequest = event.request.clone()
-
-        return fetch(fetchRequest)
-          .then(function(response) {
-            if (!response || response.status !== 200) {
-              return response
-            }
-
-            var responseToCache = response.clone()
-            caches.open(cacheName).then(function(cache) {
-              cache.put(event.request, responseToCache)
-            })
-
+      return fetch(fetchRequest)
+        .then(function(response) {
+          if (!response || response.status !== 200) {
             return response
+          }
+
+          var responseToCache = response.clone()
+          caches.open(cacheName).then(function(cache) {
+            cache.put(event.request, responseToCache)
           })
-          .catch(function(err) {
-            if (
-              event.request.method === 'GET' &&
-              event.request.headers.get('accept').includes('text/html')
-            ) {
-              return caches.match(offlineUrl)
-            }
-          })
-      })
-    )
-  }
+
+          return response
+        })
+        .catch(function(err) {
+          if (
+            event.request.method === 'GET' &&
+            event.request.headers.get('accept').includes('text/html')
+          ) {
+            return caches.match(offlineUrl)
+          }
+        })
+    })
+  )
 })
 
 self.addEventListener('push', function(e) {
@@ -181,78 +272,3 @@ function getQueryString(field, url = window.location.href) {
   var string = reg.exec(url)
   return string ? string[1] : null
 }
-
-;(function() {
-  var db
-  function createInstance() {
-    if (!db) {
-      db = new Promise(function(resolve, reject) {
-        var req = indexedDB.open('keyval-store', 1)
-        req.onerror = function() {
-          reject(req.error)
-        }
-        req.onupgradeneeded = function() {
-          req.result.createObjectStore('keyval')
-        }
-        req.onsuccess = function() {
-          resolve(req.result)
-        }
-      })
-    }
-
-    return db
-  }
-
-  function withStore(type, callback) {
-    return createInstance().then(function(db) {
-      return new Promise(function(resolve, reject) {
-        var transaction = db.transaction('keyval', type)
-        callback(transaction.objectStore('keyval'))
-
-        transaction.oncomplete = function() {
-          resolve()
-        }
-        transaction.onerror = function() {
-          reject(transaction.error)
-        }
-      })
-    })
-  }
-
-  var idbKeyval = {
-    get: function(key) {
-      var req
-      return withStore('readonly', function(store) {
-        req = store.get(key)
-      }).then(function() {
-        return req.result
-      })
-    },
-    set: function(key, value) {
-      return withStore('readwrite', function(store) {
-        store.put(value, key)
-      })
-    },
-    delete: function(key) {
-      return withStore('readwrite', function(store) {
-        store.delete(key)
-      })
-    },
-    keys: function() {
-      var keys = []
-      return withStore('readonly', function(store) {
-        ;(store.openKeyCursor || store.openCursor).call(
-          store
-        ).onsuccess = function() {
-          if (!this.result) return
-          keys.push(this.result.key)
-          this.result.continue()
-        }
-      }).then(function() {
-        return keys
-      })
-    }
-  }
-
-  self.idbKeyval = idbKeyval
-})()
